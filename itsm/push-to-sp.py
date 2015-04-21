@@ -3,6 +3,7 @@
 
 import json
 import logging
+import sys
 
 from suds.sax.element import Attribute, Element
 from xlrd import open_workbook
@@ -114,6 +115,9 @@ class PushToSP(Base):
 					('Type', c('Type')),
 					('List', c('Values') if c('Type') == 'Lookup' else None)
 				]
+
+				if not c('Type'):
+					sys.exit('Missing type for ' + c('Field Display Name'))
 
 				if self.args.type == 'columns':
 					attrs.append(('Group', self.args.spec))
