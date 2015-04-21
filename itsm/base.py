@@ -101,6 +101,7 @@ class Base(object):
 
 		if 'URL' in info:
 			url = info['URL']
+			del info['URL']
 		elif 'RESOURCE' in info:
 			import pkg_resources
 		
