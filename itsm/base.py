@@ -83,6 +83,9 @@ class Base(object):
 	def couchdb_client(self, name):
 		return self._named_client(name, self.create_couchdb_client)
 
+	def webservices_client(self, name):
+		return self._named_client(name, self.create_ws_client)
+
 	def sharepoint_client(self, name):
 		return self._named_client(name, self.create_sharepoint_client)
 		
