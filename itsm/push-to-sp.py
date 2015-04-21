@@ -19,7 +19,7 @@ class PushToSP(Base):
 		parser.add_argument('op', help='operation to perform (new, update, delete)')
 		parser.add_argument('type', help='type of thing to process (columns, content-type, list)')
 		parser.add_argument('spec', help='argument to the type (identifier or group)')
-		parser.add_argument('spreadsheet', help='path to Excel spreadsheet containing specifications', default='../Spreadsheets/ITSM Field Definitions.xlsx', nargs='?')
+		parser.add_argument('spreadsheet', help='path to Excel spreadsheet containing specifications', default='../../Spreadsheets/ITSM Field Definitions.xlsx', nargs='?')
 		parser.add_argument('sheet', help='sheet name and optional sub-type in spreadsheet')
 
 		return parser
