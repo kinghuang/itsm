@@ -35,7 +35,7 @@ class UnitsToADSM(ADSMBase):
 			('UNITISUnitRoomNumber', lambda r: r['Rooms']['ContactRoom'][0]['Room']['Number']),
 			('UNITISUnitPhone', lambda r: '+%s (%s) %s' % (r['Phones']['ContactPhone'][0]['Phone']['CountryCode'], r['Phones']['ContactPhone'][0]['Phone']['AreaCode'], r['Phones']['ContactPhone'][0]['Phone']['Number'])),
 			('UNITISUnitEmail', lambda r: r['Emails']['ContactEmail'][0]['Address']),
-			('UNITISUnitCoordinators', lambda r: ';#'.join(map(lambda x: p(x['Email']), r['Coordinators']['Coordinator'])))
+			('UNITISUnitCoordinators', lambda r: ';#'.join(map(lambda x: self.person_ref(x['Email']), r['Coordinators']['Coordinator'])))
 		)
 
 		parents_children_field_map = (
