@@ -91,7 +91,7 @@ class ADSMBase(Base):
 
 	# Sync functions
 
-	def sync_to_list_by_comparison(self, list_uuid, view_uuid, list_items_compare_key, ext_items, ext_items_compare_key, compare_f, field_map):
+	def sync_to_list_by_comparison(self, list_uuid, view_uuid, list_items_compare_key, ext_items, ext_items_compare_key, compare_f, field_map, content_type='Item', folder=None):
 		list_items = self.adsm_lists.service.GetListItems(list_uuid, view_uuid)
 		list_items_rows = list_items.listitems.data.row if int(list_items.listitems.data._ItemCount) > 1 \
 		            else [list_items.listitems.data.row] if int(list_items.listitems.data._ItemCount) > 0 \
@@ -102,6 +102,8 @@ class ADSMBase(Base):
 		batch = Element('Batch')\
 		       .append(Attribute('OnError', 'Continue'))\
 		       .append(Attribute('ListVersion', 1))
+		if folder:
+			batch.append(Attribute('RootFolder', folder))
 
 		def update(b):
 			updates = Element('ns1:updates').append(b)
@@ -120,7 +122,10 @@ class ADSMBase(Base):
 			        .append(Attribute('Cmd', method_cmd))\
 			        .append(Element('Field')\
 			          .append(Attribute('Name', 'ID'))\
-			          .setText(item_id))
+			          .setText(item_id))\
+			        .append(Element('Field')\
+			        	.append(Attribute('Name', 'ContentType'))\
+			        	.setText(content_type))
 			
 			for dst, src in field_map:
 				try:
