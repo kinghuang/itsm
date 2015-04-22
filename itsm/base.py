@@ -88,6 +88,9 @@ class Base(object):
 
 	def sharepoint_client(self, name):
 		return self._named_client(name, self.create_sharepoint_client)
+
+	def mssql_client(self, name):
+		return self._named_client(name, self.create_mssql_client)
 		
 	def _named_client(self, name, create_f):
 		key_prefix = name + '_'
@@ -141,3 +144,7 @@ class Base(object):
 	
 		# return Client(wsdl_url, cache=None, **args)
 		return Client(wsdl_url, **args)
+
+	def create_mssql_client(self, host, NAME=None, USERNAME=None, PASSWORD=None, **args):
+		import pymssql
+		return pymssql.connect(host, USERNAME, PASSWORD, NAME)
