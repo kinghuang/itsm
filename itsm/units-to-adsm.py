@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # coding=utf-8
 
-from suds.sax.element import Attribute, Element
-
 from itsm.adsm import ADSMBase
 
 
