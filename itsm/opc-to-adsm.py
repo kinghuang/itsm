@@ -5,8 +5,6 @@ import datetime
 import re
 import time
 
-from suds.sax.element import Attribute, Element
-
 from itsm.adsm import ADSMBase
 
 
