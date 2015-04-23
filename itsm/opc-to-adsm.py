@@ -52,7 +52,8 @@ class OPCToADSM(ADSMBase):
 			('OPCServerZone', lambda r: '-'.join(r['ZoneLocation'].split('-', 2)[:2])),
 			('OPCServerStatus', 'Status'),
 			('CIExternalDateModified', lambda r: r['ModifiedDate'].isoformat().replace('T', ' ')),
-			('CIExternalReference1', 'ServerId')
+			('CIExternalReference1', 'ServerId'),
+			('CIExternalReference2', 'UCTagNum')
 		)
 
 		# Fetch relevant servers from OPC and create yield function
