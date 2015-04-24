@@ -8,10 +8,10 @@ import sys
 from suds.sax.element import Attribute, Element
 from xlrd import open_workbook
 
-from itsm.base import Base
+from itsm.adsm import ADSMBase
 
 
-class PushToSP(Base):
+class PushToSP(ADSMBase):
 
 	def argument_parser(self):
 		parser = super(PushToSP, self).argument_parser()
@@ -27,21 +27,7 @@ class PushToSP(Base):
 	def prepare_for_main(self):
 		# logging.basicConfig(level=logging.INFO)
 		# logging.getLogger('suds.client').setLevel(logging.DEBUG)
-
-		self._sp_webs = None
-		self._sp_lists = None
-
-	@property
-	def sp_webs(self):
-		if not self._sp_webs:
-			self._sp_webs = self.sharepoint_client('SP_ADSM_WEBS')
-		return self._sp_webs
-
-	@property
-	def sp_lists(self):
-		if not self._sp_lists:
-			self._sp_lists = self.sharepoint_client('SP_ADSM_LISTS')
-		return self._sp_lists
+		pass
 
 	def main(self):
 		# Get the Excel workbook and sheet.
@@ -56,18 +42,18 @@ class PushToSP(Base):
 
 		# If we are processing content-type or columns, fetch the site columns
 		if self.args.type in ('content-type', 'columns'):
-			sp_columns = {f._Name:f for f in self.sp_webs.service.GetColumns().Fields.Field}
+			sp_columns = {f._Name:f for f in self.adsm_webs.service.GetColumns().Fields.Field}
 			sp_source = sp_columns
 
 		# If we are processing a content-type, fetch the existing type
 		if self.args.type == 'content-type':
-			sp_ctype = self.sp_webs.service.GetContentType(self.args.spec)
+			sp_ctype = self.adsm_webs.service.GetContentType(self.args.spec)
 			sp_ctype_fieldnames = set(f._Name for f in sp_ctype.ContentType.Fields.Field)
 			sp_source = sp_ctype_fieldnames
 
 		# If we are processing a list, fetch the existing list
 		if self.args.type == 'list':
-			sp_list = self.sp_lists.service.GetList(self.args.spec)
+			sp_list = self.adsm_lists.service.GetList(self.args.spec)
 			sp_list_fieldnames = set(f._Name for f in sp_list.List.Fields.Field)
 			sp_source = sp_list_fieldnames
 
@@ -153,11 +139,11 @@ class PushToSP(Base):
 			v = self.args.op + 'Fields'
 
 			if self.args.type == 'columns':
-				print self.sp_webs.service.UpdateColumns(**{v:Element('ns1:%s' % v).append(op_fields)})
+				print self.adsm_webs.service.UpdateColumns(**{v:Element('ns1:%s' % v).append(op_fields)})
 			elif self.args.type == 'content-type':
-				print self.sp_webs.service.UpdateContentType(contentTypeId=self.args.spec, **{v:Element('ns1:%s' % v).append(op_fields)})
+				print self.adsm_webs.service.UpdateContentType(contentTypeId=self.args.spec, **{v:Element('ns1:%s' % v).append(op_fields)})
 			elif self.args.type == 'list':
-				print self.sp_lists.service.UpdateList(listName=self.args.spec, **{v:Element('ns1:%s' % v).append(op_fields)})
+				print self.adsm_lists.service.UpdateList(listName=self.args.spec, **{v:Element('ns1:%s' % v).append(op_fields)})
 
 
 def main(args=None):
