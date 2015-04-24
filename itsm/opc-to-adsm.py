@@ -58,8 +58,8 @@ class OPCToADSM(ADSMBase):
 
 		# Fetch relevant servers from OPC and create yield function
 		# zipping together results with column names
-		cursor.execute("SELECT * FROM Server WHERE Tier2 = 'Computing Device' AND Tier3 IN ('Server', 'Virtual Host') AND Status NOT IN ('Removed', 'Research')")
 		def servers():
+			cursor.execute("SELECT * FROM Server WHERE Tier2 = 'Computing Device' AND Tier3 IN ('Server', 'Virtual Host') AND Status NOT IN ('Removed', 'Research')")
 			# row = cursor.fetchone()
 			# row = (str(row[0]),) + row[1:]
 			# yield dict(zip(server_columns, row))
