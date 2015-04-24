@@ -70,7 +70,7 @@ class ADSMBase(Base):
 			list_items_rows = list_items.listitems.data.row if int(list_items.listitems.data._ItemCount) > 1 \
 			          else [list_items.listitems.data.row] if int(list_items.listitems.data._ItemCount) > 0 \
 			          else []
-			table = dict(map(lambda x: (x[field], x), list_items_rows))
+			table = dict(filter(lambda x: x[0], map(lambda x: (x.__dict__.get(field), x), list_items_rows)))
 			self.listitem_ref._cache[cache_key] = table
 		match = table.get(field_value)
 		if match:
