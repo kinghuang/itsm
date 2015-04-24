@@ -51,7 +51,7 @@ class OPCToADSM(ADSMBase):
 			('OPCServerSite', 'Site'),
 			('OPCServerZone', lambda r: '-'.join(r['ZoneLocation'].split('-', 2)[:2])),
 			('OPCServerStatus', 'Status'),
-			('CIExternalDateModified', lambda r: r['ModifiedDate'].isoformat().replace('T', ' ')),
+			('ExternalDateModified', lambda r: r['ModifiedDate'].isoformat().replace('T', ' ')),
 			('CIExternalReference1', 'ServerId'),
 			('CIExternalReference2', 'UCTagNum')
 		)
@@ -71,7 +71,7 @@ class OPCToADSM(ADSMBase):
 			if list_item == None:
 				return 'New'
 			else:
-				list_item_date = datetime.datetime(*time.strptime(list_item['_ows_CIExternalDateModified'], '%Y-%m-%d %H:%M:%S')[:6])
+				list_item_date = datetime.datetime(*time.strptime(list_item['_ows_ExternalDateModified'], '%Y-%m-%d %H:%M:%S')[:6])
 				if ext_item['ModifiedDate'] > list_item_date:
 					return 'Update'
 			return None
