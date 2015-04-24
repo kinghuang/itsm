@@ -124,7 +124,7 @@ class PushToSP(ADSMBase):
 
 				if sp_args:
 					for k, v in sp_args.items():
-						if k in ('Default', ):
+						if k in ('Default', 'Formula'):
 							field.append(Element(k).setText(v))
 						else:
 							field.set(k, v)
