@@ -12,12 +12,13 @@ class DeleteItems(ADSMBase):
 		parser = super(DeleteItems, self).argument_parser()
 
 		parser.add_argument('list', help='list uuid')
+		parser.add_argument('view', help='view uuid')
 		parser.add_argument('-d', help='dry run', action='store_true')
 
 		return parser
 
 	def main(self):
-		items = self.adsm_lists.service.GetListItems(self.args.list).listitems.data.row
+		items = self.adsm_lists.service.GetListItems(self.args.list, self.args.view).listitems.data.row
 
 		method_idx = 1
 		batch = Element('Batch')\
