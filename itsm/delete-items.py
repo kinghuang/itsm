@@ -12,7 +12,7 @@ class DeleteItems(ADSMBase):
 		parser = super(DeleteItems, self).argument_parser()
 
 		parser.add_argument('list', help='list uuid')
-		parser.add_argument('view', help='view uuid')
+		parser.add_argument('view', help='view uuid', nargs='?')
 		parser.add_argument('-d', help='dry run', action='store_true')
 
 		return parser
