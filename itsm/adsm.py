@@ -70,7 +70,7 @@ class ADSMBase(Base):
 		table = self.listitem_ref._cache.get(cache_key)
 		if not table:
 			if not query:
-				query.append(Element('Where').append(Element('IsNotNull').append(Element('FieldRef').append(Attribute('Name', 'ID')))))
+				query = Element('ns1:query').append(Element('Query').append(Element('Where').append(Element('IsNotNull').append(Element('FieldRef').append(Attribute('Name', 'ID'))))))
 			if viewFields:
 				fields = Element('ViewFields')
 				for f in viewFields:
