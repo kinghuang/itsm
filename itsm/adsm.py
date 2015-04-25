@@ -115,7 +115,7 @@ class ADSMBase(Base):
 
 	# Sync functions
 
-	def sync_to_list_by_comparison(self, list_uuid, view_uuid, list_items_compare_key, ext_items, ext_items_compare_key, compare_f, field_map, content_type='Item', folder=None):
+	def sync_to_list_by_comparison(self, list_uuid, view_uuid, list_items_compare_key, ext_items, ext_items_compare_key, compare_f, field_map, content_type='Item', folder=None, commit=True):
 		list_items = self.adsm_lists.service.GetListItems(list_uuid, view_uuid)
 		list_items_rows = list_items.listitems.data.row if int(list_items.listitems.data._ItemCount) > 1 \
 		            else [list_items.listitems.data.row] if int(list_items.listitems.data._ItemCount) > 0 \
@@ -130,8 +130,9 @@ class ADSMBase(Base):
 			batch.append(Attribute('RootFolder', folder))
 
 		def update(b):
-			updates = Element('ns1:updates').append(b)
-			return self.adsm_lists.service.UpdateListItems(listName=list_uuid, updates=updates)
+			if commit:
+				updates = Element('ns1:updates').append(b)
+				print self.adsm_lists.service.UpdateListItems(listName=list_uuid, updates=updates)
 
 		for ext_item in ext_items:
 			list_item = list_items_map.get(ext_item[ext_items_compare_key])
