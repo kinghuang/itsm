@@ -126,8 +126,17 @@ class ADSMBase(Base):
 
 	# Sync functions
 
-	def sync_to_list_by_comparison(self, list_uuid, view_uuid, list_items_compare_key, ext_items, ext_items_compare_key, compare_f, field_map, content_type='Item', folder=None, commit=True):
-		list_items = self.adsm_lists.service.GetListItems(list_uuid, view_uuid)
+	def sync_to_list_by_comparison(self, list_uuid, query, viewFields, list_items_compare_key, ext_items, ext_items_compare_key, compare_f, field_map, content_type='Item', folder=None, commit=True):
+		if not query:
+			query = Element('ns1:query').append(Element('Query').append(Element('Where').append(Element('IsNotNull').append(Element('FieldRef').append(Attribute('Name', 'ID'))))))
+		if viewFields:
+			fields = Element('ns1:fields')
+			fields.append(Element('ViewFields'))
+			for f in viewFields:
+				fields.append(Element('FieldRef').append(Attribute('Name', f)))
+		else:
+			fields = None
+		list_items = self.adsm_lists.service.GetListItems(list_uuid, query=query, viewFields=fields, rowLimit=9999)
 		list_items_rows = list_items.listitems.data.row if int(list_items.listitems.data._ItemCount) > 1 \
 		            else [list_items.listitems.data.row] if int(list_items.listitems.data._ItemCount) > 0 \
 		            else []
