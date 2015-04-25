@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # coding=utf-8
 
+import collections
+
 from nltk import metrics, stem, tokenize
 from suds.sax.element import Attribute, Element
 
@@ -154,7 +156,12 @@ class ADSMBase(Base):
 			
 			for dst, src in field_map:
 				try:
-					v = (getattr(ext_item, src) if hasattr(ext_item, src) else None) if isinstance(src, basestring) else src(ext_item)
+					if not isinstance(src, basestring):
+						v = src(ext_item)
+					elif isinstance(ext_item, collections.Mapping):
+						v = ext_item.get(src)
+					else:
+						v = getattr(ext_item, src, None)
 				except:
 					v = None
 				e = Element('Field')\
