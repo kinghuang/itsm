@@ -72,10 +72,10 @@ class ADSMBase(Base):
 			if not query:
 				query = Element('ns1:query').append(Element('Query').append(Element('Where').append(Element('IsNotNull').append(Element('FieldRef').append(Attribute('Name', 'ID'))))))
 			if viewFields:
-				fields = Element('ns1:viewFields')
-				fields.append(Element('ViewFields'))
+				fields = Element('ViewFields')
 				for f in viewFields:
 					fields.append(Element('FieldRef').append(Attribute('Name', f)))
+				fields = Element('ns1:viewFields').append(fields)
 			else:
 				fields = None
 			list_items = self.adsm_lists.service.GetListItems(list_uuid, query=query, viewFields=fields, rowLimit=9999)
@@ -130,10 +130,10 @@ class ADSMBase(Base):
 		if not query:
 			query = Element('ns1:query').append(Element('Query').append(Element('Where').append(Element('IsNotNull').append(Element('FieldRef').append(Attribute('Name', 'ID'))))))
 		if viewFields:
-			fields = Element('ns1:viewFields')
-			fields.append(Element('ViewFields'))
+			fields = Element('ViewFields')
 			for f in viewFields:
 				fields.append(Element('FieldRef').append(Attribute('Name', f)))
+			fields = Element('ns1:viewFields').append(fields)
 		else:
 			fields = None
 		list_items = self.adsm_lists.service.GetListItems(list_uuid, query=query, viewFields=fields, rowLimit=9999)
