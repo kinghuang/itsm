@@ -72,7 +72,7 @@ class ADSMBase(Base):
 			if not query:
 				query = Element('ns1:query').append(Element('Query').append(Element('Where').append(Element('IsNotNull').append(Element('FieldRef').append(Attribute('Name', 'ID'))))))
 			if viewFields:
-				fields = Element('ns1:fields')
+				fields = Element('ns1:viewFields')
 				fields.append(Element('ViewFields'))
 				for f in viewFields:
 					fields.append(Element('FieldRef').append(Attribute('Name', f)))
@@ -130,7 +130,7 @@ class ADSMBase(Base):
 		if not query:
 			query = Element('ns1:query').append(Element('Query').append(Element('Where').append(Element('IsNotNull').append(Element('FieldRef').append(Attribute('Name', 'ID'))))))
 		if viewFields:
-			fields = Element('ns1:fields')
+			fields = Element('ns1:viewFields')
 			fields.append(Element('ViewFields'))
 			for f in viewFields:
 				fields.append(Element('FieldRef').append(Attribute('Name', f)))
