@@ -72,9 +72,12 @@ class ADSMBase(Base):
 			if not query:
 				query = Element('ns1:query').append(Element('Query').append(Element('Where').append(Element('IsNotNull').append(Element('FieldRef').append(Attribute('Name', 'ID'))))))
 			if viewFields:
-				fields = Element('ViewFields')
+				fields = Element('ns1:fields')
+				fields.append(Element('ViewFields'))
 				for f in viewFields:
 					fields.append(Element('FieldRef').append(Attribute('Name', f)))
+			else:
+				fields = None
 			list_items = self.adsm_lists.service.GetListItems(list_uuid, query=query, viewFields=fields, rowLimit=9999)
 			list_items_rows = list_items.listitems.data.row if int(list_items.listitems.data._ItemCount) > 1 \
 			          else [list_items.listitems.data.row] if int(list_items.listitems.data._ItemCount) > 0 \
