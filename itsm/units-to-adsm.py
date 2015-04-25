@@ -8,11 +8,10 @@ class UnitsToADSM(ADSMBase):
 
 	# Production
 	units_list = '{3BEA7DBB-27C7-45DF-A187-A589CA062600}'
-	key_view = '{AA5356F1-653E-49C4-B022-0A4B6CDE7D97}'
+	key_fields = ('ID', 'Title', 'CIExternalReference1', 'CIExternalReference2')
 
 	# Development
 	# units_list = '{C82DE52C-9AA2-43B7-B739-5047A002A15A}'
-	# key_view = '{5F505BA2-720E-4BD3-9ED7-93248E5F83F6}'
 	
 	@property
 	def unitis_units(self):
@@ -39,8 +38,8 @@ class UnitsToADSM(ADSMBase):
 		)
 
 		parents_children_field_map = (
-			('UNITISUnitParentUnits', lambda r: self.listitem_refs(UnitsToADSM.units_list, UnitsToADSM.key_view, '_ows_CIExternalReference1', [x['Id'] for x in r['Parents']['Unit']])),
-			('UNITISUnitChildUnits', lambda r: self.listitem_refs(UnitsToADSM.units_list, UnitsToADSM.key_view, '_ows_CIExternalReference1', [x['Id'] for x in r['Children']['Unit']]))
+			('UNITISUnitParentUnits', lambda r: self.listitem_refs(UnitsToADSM.units_list, None, UnitsToADSM.key_fields, '_ows_CIExternalReference1', [x['Id'] for x in r['Parents']['Unit']])),
+			('UNITISUnitChildUnits', lambda r: self.listitem_refs(UnitsToADSM.units_list, None, UnitsToADSM.key_fields, '_ows_CIExternalReference1', [x['Id'] for x in r['Children']['Unit']]))
 		)
 
 		# Fetch all public units from UNITIS
@@ -62,9 +61,9 @@ class UnitsToADSM(ADSMBase):
 			return 'Update' if ext_item['Id'] in updated_unit_ids else None
 
 		# Sync
-		self.sync_to_list_by_comparison(UnitsToADSM.units_list, UnitsToADSM.key_view, '_ows_CIExternalReference1', public_units, 'Id', create_update_compare_f, create_update_field_map)
+		self.sync_to_list_by_comparison(UnitsToADSM.units_list, None, UnitsToADSM.key_fields, '_ows_CIExternalReference1', public_units, 'Id', create_update_compare_f, create_update_field_map)
 		self.reset_caches()
-		self.sync_to_list_by_comparison(UnitsToADSM.units_list, UnitsToADSM.key_view, '_ows_CIExternalReference1', public_units, 'Id', parents_children_compare_f, parents_children_field_map)
+		self.sync_to_list_by_comparison(UnitsToADSM.units_list, None, UnitsToADSM.key_fields, '_ows_CIExternalReference1', public_units, 'Id', parents_children_compare_f, parents_children_field_map)
 
 
 def main(args=None):

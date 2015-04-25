@@ -65,11 +65,17 @@ class ADSMBase(Base):
 			principals = [principals]
 		return ADSMBase.ref_sep.join(filter(lambda x: x, map(self.person_ref, principals)))
 
-	def listitem_ref(self, list_uuid, view_uuid, field, field_value, display_field='_ows_Title', fuzzy=False, max_dist=4):
-		cache_key = '%s/%s/%s' % (list_uuid, view_uuid, field)
+	def listitem_ref(self, list_uuid, query, viewFields, field, field_value, display_field='_ows_Title', fuzzy=False, max_dist=4):
+		cache_key = '%s/%s' % (list_uuid, ','.join(viewFields))
 		table = self.listitem_ref._cache.get(cache_key)
 		if not table:
-			list_items = self.adsm_lists.service.GetListItems(list_uuid, view_uuid)
+			if not query:
+				query.append(Element('Where').append(Element('IsNotNull').append(Element('FieldRef').append(Attribute('Name', 'ID')))))
+			if viewFields:
+				fields = Element('ViewFields')
+				for f in viewFields:
+					fields.append(Element('FieldRef').append(Attribute('Name', f)))
+			list_items = self.adsm_lists.service.GetListItems(list_uuid, query=query, viewFields=fields, rowLimit=9999)
 			list_items_rows = list_items.listitems.data.row if int(list_items.listitems.data._ItemCount) > 1 \
 			          else [list_items.listitems.data.row] if int(list_items.listitems.data._ItemCount) > 0 \
 			          else []
@@ -104,12 +110,12 @@ class ADSMBase(Base):
 		return None
 	listitem_ref._cache = {}
 
-	def listitem_refs(self, list_uuid, view_uuid, field, field_values, display_field='_ows_Title', fuzzy=False, max_dist=4):
+	def listitem_refs(self, list_uuid, query, viewFields, field, field_values, display_field='_ows_Title', fuzzy=False, max_dist=4):
 		if not field_values:
 			return None
 		if isinstance(field_values, basestring):
 			field_values = [field_values]
-		return ADSMBase.ref_sep.join(filter(lambda x: x, map(lambda y: self.listitem_ref(list_uuid, view_uuid, field, y, display_field=display_field, fuzzy=fuzzy, max_dist=max_dist), field_values)))
+		return ADSMBase.ref_sep.join(filter(lambda x: x, map(lambda field_value: self.listitem_ref(list_uuid, query, viewFields, field, field_value, display_field=display_field, fuzzy=fuzzy, max_dist=max_dist), field_values)))
 
 	def reset_caches(self):
 		self.listitem_ref._cache = {}
