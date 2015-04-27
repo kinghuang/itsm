@@ -35,6 +35,13 @@ class ADSMBase(Base):
 	@property
 	def adsm_webs(self):   return self._delayed_adsm_client('_adsm_webs',   'Webs.asmx?WSDL')
 
+	@property
+	def ci_list_uuid(self): return os.environ[self.args.env + '_CI_LIST']
+	@property
+	def uc_list_uuid(self): return os.environ[self.args.env + '_UC_LIST']
+	@property
+	def choices_list_uuid(self): return os.environ[self.args.env + '_CHOICES_LIST']
+
 	# Reference functions
 
 	def person_ref(self, principal):
