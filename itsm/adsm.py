@@ -140,7 +140,7 @@ class ADSMBase(Base):
 
 	# Sync functions
 
-	def sync_to_list_by_comparison(self, list_uuid, query, viewFields, list_items_compare_key, ext_items, ext_items_compare_key, compare_f, field_map, content_type='Item', folder=None, commit=True):
+	def sync_to_list_by_comparison(self, list_uuid, query, viewFields, list_items_compare_key, ext_items, ext_items_compare_key, compare_f, field_map, content_type='Item', folder=None, fuzzy=False, max_dist=4, commit=True):
 		if not query:
 			query = Element('ns1:query').append(Element('Query').append(Element('Where').append(Element('IsNotNull').append(Element('FieldRef').append(Attribute('Name', 'ID'))))))
 		if viewFields:
@@ -154,7 +154,13 @@ class ADSMBase(Base):
 		list_items_rows = list_items.listitems.data.row if int(list_items.listitems.data._ItemCount) > 1 \
 		            else [list_items.listitems.data.row] if int(list_items.listitems.data._ItemCount) > 0 \
 		            else []
-		list_items_map = dict(map(lambda x: (x[list_items_compare_key], x), list_items_rows))
+		list_items_map = dict(filter(lambda p: p[0], map(lambda x: (x.__dict__.get(list_items_compare_key), x), list_items_rows)))
+		if fuzzy:
+			stemmer = stem.PorterStemmer()
+			def normalize(s):
+				words = tokenize.wordpunct_tokenize(s.lower().strip())
+				return ' '.join([stemmer.stem(w) for w in words])
+			list_items_normalized_map = dict((normalize(k), v) for k, v in list_items_map.items())
 		
 		method_idx = 1
 		batch = Element('Batch')\
@@ -170,6 +176,11 @@ class ADSMBase(Base):
 
 		for ext_item in ext_items:
 			list_item = list_items_map.get(ext_item[ext_items_compare_key])
+			if not list_item and fuzzy:
+				normalized_compare_v = normalize(ext_item[ext_items_compare_key])
+				candidates = sorted(list_items_normalized_map.items(), lambda x, y: metrics.edit_distance(x, normalized_compare_v) - metrics.edit_distance(y, normalized_compare_v), lambda t: t[0])
+				if metrics.edit_distance(candidates[0][0], normalized_compare_v) <= max_dist:
+					list_item = candidates[0][1]
 			method_cmd = compare_f(ext_item, list_item)
 			if not method_cmd:
 				continue
