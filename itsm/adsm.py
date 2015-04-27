@@ -14,9 +14,16 @@ class ADSMBase(Base):
 	ref_sep = ';#'
 	batch_size = 20
 
+	def argument_parser(self):
+		parser = super(ADSMBase, self).argument_parser()
+
+		parser.add_argument('env', default='SP_ADSM', nargs='?')
+
+		return parser
+
 	def _delayed_adsm_client(self, var, sp):
 		if not hasattr(self, var):
-			setattr(self, var, self._named_client('SP_ADSM', lambda url, **x: self.create_sharepoint_client(url + '/' + sp, **x)))
+			setattr(self, var, self._named_client(self.args.env, lambda url, **x: self.create_sharepoint_client(url + '/' + sp, **x)))
 		return getattr(self, var)
 
 	# Access web services clients for ADSM endpoints
