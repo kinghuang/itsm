@@ -111,7 +111,7 @@ class ADSMBase(Base):
 				words = tokenize.wordpunct_tokenize(s.lower().strip())
 				return ' '.join([stemmer.stem(w) for w in words])
 
-			normalized_cache_key = '%s/%s/%s/normalized' % (list_uuid, view_uuid, field)
+			normalized_cache_key = '%s/normalized' % cache_key
 			normalized_table = self.listitem_ref._cache.get(normalized_cache_key)
 			if not normalized_table:
 				normalized_table = dict((normalize(k), v) for k, v in table.items())
