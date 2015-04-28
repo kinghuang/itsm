@@ -139,7 +139,7 @@ class ADSMBase(Base):
 		return ADSMBase.ref_sep.join(filter(lambda x: x, map(self.person_ref, principals)))
 
 	def listitem_ref(self, list_uuid, query, viewFields, field, field_value, display_field='_ows_Title', fuzzy=False, max_dist=4):
-		cache = self._cachetable('listitem_ref')
+		cache = self._cachetable('listitems')
 		cache_key = '%s/%s/%s/%s' % (list_uuid, query, viewFields, field)
 
 		table = cache.get(cache_key)
