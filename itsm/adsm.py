@@ -119,6 +119,9 @@ class ADSMBase(Base):
 
 		return list_items_rows
 
+	def keyed_listitems(self, list_items, key_field='_ows_Title'):
+		return dict(filter(lambda x: x[0], map(lambda x: (x.__dict__.get(key_field), x), list_items)))
+
 	def listitem_ref(self, list_uuid, query, viewFields, field, field_value, display_field='_ows_Title', fuzzy=False, max_dist=4):
 		cache_key = '%s/%s/%s' % (list_uuid, query, ','.join(viewFields))
 		table = self.listitem_ref._cache.get(cache_key)
