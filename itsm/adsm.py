@@ -91,7 +91,7 @@ class ADSMBase(Base):
 			return table[key]
 		
 		listitems = self.listitems(list_uuid, query=query, fields=fields, limit=limit)
-		keyed_listitems = dict(filter(lambda x: x[0], map(lambda x: (x.__dict__.get(key_field), x), list_items)))
+		keyed_listitems = dict(filter(lambda x: x[0], map(lambda x: (x.__dict__.get(key_field), x), listitems)))
 		table[key] = keyed_listitems
 
 		return keyed_listitems
@@ -103,7 +103,7 @@ class ADSMBase(Base):
 			return table[key]
 		
 		listitems = self.listitems(list_uuid, query=query, fields=fields, limit=limit)
-		keyed_listitems = dict(filter(lambda x: x[0], map(lambda x: (self.normalize(x.__dict__.get(key_field)), x), list_items)))
+		keyed_listitems = dict(filter(lambda x: x[0], map(lambda x: (self.normalize(x.__dict__.get(key_field)), x), listitems)))
 		table[key] = keyed_listitems
 
 		return keyed_listitems
@@ -112,9 +112,9 @@ class ADSMBase(Base):
 		words = tokenize.wordpunct_tokenize(s.lower().strip())
 		return ' '.join([stemmer.stem(w) for w in words])
 
-	def fuzzy_match(self, fuzzy_keyed_list_items, s, max_dist=4):
+	def fuzzy_match(self, fuzzy_keyed_listitems, s, max_dist=4):
 		normalized_key = self.normalize(s)
-		candidates = filter(lambda y: y[0] <= max_dist, ((metrics.edit_distance(x[0], normalized_key), x[1]) for x in fuzzy_keyed_list_items.items()))
+		candidates = filter(lambda y: y[0] <= max_dist, ((metrics.edit_distance(x[0], normalized_key), x[1]) for x in fuzzy_keyed_listitems.items()))
 		candidates.sort(lambda x, y: x[0] - y[0])
 
 		return candidates[0][1] if len(candidates) > 0 else None
