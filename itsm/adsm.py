@@ -84,11 +84,29 @@ class ADSMBase(Base):
 
 		return list_items_rows
 
-	def keyed_listitems(self, list_items, key_field='_ows_Title'):
-		return dict(filter(lambda x: x[0], map(lambda x: (x.__dict__.get(key_field), x), list_items)))
+	def keyed_listitems(self, list_uuid, query=None, fields=('ID', 'Title'), limit=9999, key_field='_ows_Title'):
+		table = self._cachetable('keyed_listitems')
+		key = '%s/%s/%s/%s/%s' % (list_uuid, query, fields, limit, key_field)
+		if key in table:
+			return table[key]
+		
+		listitems = self.listitems(list_uuid, query=query, fields=fields, limit=limit)
+		keyed_listitems = dict(filter(lambda x: x[0], map(lambda x: (x.__dict__.get(key_field), x), list_items)))
+		table[key] = keyed_listitems
 
-	def fuzzy_keyed_listitems(self, list_items, key_field='_ows_Title'):
-		return dict(filter(lambda x: x[0], map(lambda x: (self.normalize(x.__dict__.get(key_field)), x), list_items)))
+		return keyed_listitems
+
+	def fuzzy_keyed_listitems(self, list_uuid, query=None, fields=('ID', 'Title'), limit=9999, key_field='_ows_Title'):
+		table = self._cachetable('keyed_listitems')
+		key = '%s/%s/%s/%s/%s/fuzzy' % (list_uuid, query, fields, limit, key_field)
+		if key in table:
+			return table[key]
+		
+		listitems = self.listitems(list_uuid, query=query, fields=fields, limit=limit)
+		keyed_listitems = dict(filter(lambda x: x[0], map(lambda x: (self.normalize(x.__dict__.get(key_field)), x), list_items)))
+		table[key] = keyed_listitems
+
+		return keyed_listitems
 
 	def normalize(self, s, stemmer=stem.PorterStemmer()):
 		words = tokenize.wordpunct_tokenize(s.lower().strip())
@@ -139,28 +157,13 @@ class ADSMBase(Base):
 		return ADSMBase.ref_sep.join(filter(lambda x: x, map(self.person_ref, principals)))
 
 	def listitem_ref(self, list_uuid, query, viewFields, field, field_value, display_field='_ows_Title', fuzzy=False, max_dist=4):
-		cache = self._cachetable('listitems')
-		cache_key = '%s/%s/%s/%s' % (list_uuid, query, viewFields, field)
-
-		table = cache.get(cache_key)
-		if not table:
-			listitems = self.listitems(list_uuid, query=query, fields=viewFields)
-			table = self.keyed_listitems(listitems, key_field=field)
-			cache[cache_key] = table
-
 		# Attempt to get exact match
+		table = self.keyed_listitems(list_uuid, query=query, fields=viewFields, key_field=field)
 		match = table.get(field_value)
 		
 		# If no exact match is found and fuzzy is True, attempt to find a reasonable match
 		if not match and fuzzy:
-			fuzzy_cache_key = '%s/fuzzy' % cache_key
-
-			fuzzy_table = cache.get(fuzzy_cache_key)
-			if not fuzzy_table:
-				listitems = self.listitems(list_uuid, query=query, fields=viewFields)
-				fuzzy_table = self.fuzzy_keyed_listitems(listitems, key_field=field)
-				cache[fuzzy_cache_key] = fuzzy_table
-
+			fuzzy_table = self.fuzzy_keyed_listitems(list_uuid, query=query, fields=viewFields, key_field=field)
 			match = self.fuzzy_match(fuzzy_table, field_value, max_dist=max_dist)
 
 		return '%s%s%s' % (match['_ows_ID'], ADSMBase.ref_sep, match[display_field] if display_field else '') if match else None
@@ -192,23 +195,9 @@ class ADSMBase(Base):
 	# Sync functions
 
 	def sync_to_list_by_comparison(self, list_uuid, query, viewFields, list_items_compare_key, ext_items, ext_items_compare_key, compare_f, field_map, content_type='Item', folder=None, fuzzy=False, max_dist=4, commit=True):
-		cache = self._cachetable('listitems')
-		cache_key = '%s/%s/%s/%s' % (list_uuid, query, viewFields, field)
-
-		table = cache.get(cache_key)
-		if not table:
-			listitems = self.listitems(list_uuid, query=query, fields=viewFields)
-			table = self.keyed_listitems(listitems, key_field=field)
-			cache[cache_key] = table
-
+		table = self.keyed_listitems(list_uuid, query=query, fields=viewFields, key_field=field)
 		if fuzzy:
-			fuzzy_cache_key = '%s/fuzzy' % cache_key
-
-			fuzzy_table = cache.get(fuzzy_cache_key)
-			if not fuzzy_table:
-				listitems = self.listitems(list_uuid, query=query, fields=viewFields)
-				fuzzy_table = self.fuzzy_keyed_listitems(listitems, key_field=field)
-				cache[fuzzy_cache_key] = fuzzy_table
+			fuzzy_table = self.fuzzy_keyed_listitems(list_uuid, query=query, fields=viewFields, key_field=field)
 		
 		method_idx = 1
 		batch = Element('Batch')\
@@ -226,7 +215,7 @@ class ADSMBase(Base):
 			list_item = table.get(ext_item[ext_items_compare_key])
 			if not list_item and fuzzy:
 				list_item = self.fuzzy_match(fuzzy_table, ext_item[ext_items_compare_key], max_dist=4)
-			
+
 			method_cmd = compare_f(ext_item, list_item)
 			if not method_cmd:
 				continue
