@@ -83,7 +83,7 @@ class ADSMBase(Base):
 		return ADSMBase.ref_sep.join(filter(lambda x: x, map(self.person_ref, principals)))
 
 	def listitem_ref(self, list_uuid, query, viewFields, field, field_value, display_field='_ows_Title', fuzzy=False, max_dist=4):
-		cache_key = '%s/%s' % (list_uuid, ','.join(viewFields))
+		cache_key = '%s/%s/%s' % (list_uuid, query, ','.join(viewFields))
 		table = self.listitem_ref._cache.get(cache_key)
 		if not table:
 			if not query:
