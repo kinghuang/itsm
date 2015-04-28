@@ -47,6 +47,13 @@ class ADSMBase(Base):
 	@property
 	def choices_list_uuid(self): return os.environ[self.args.env + '_CHOICES_LIST']
 
+	# Caching support
+	def _cachetable(self, name):
+		name = '_cache_' + name
+		if not hasattr(self, name):
+			setattr(self, name, {})
+		return getattr(self, name)
+
 	# Reference functions
 
 	def person_ref(self, principal):
