@@ -49,10 +49,16 @@ class ADSMBase(Base):
 
 	# Caching support
 	def _cachetable(self, name):
-		name = '_cache_' + name
-		if not hasattr(self, name):
-			setattr(self, name, {})
-		return getattr(self, name)
+		if not hasattr(self, '_cachetables')
+			setattr(self, '_cachetables', {})
+		tables = getattr(self, '_cachetables')
+		
+		table = tables.get(name)
+		if not table:
+			table = {}
+			tables[name, table]
+
+		return table
 
 	# Reference functions
 
