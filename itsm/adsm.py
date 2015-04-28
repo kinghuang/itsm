@@ -170,7 +170,11 @@ class ADSMBase(Base):
 			fields = Element('ns1:viewFields').append(fields)
 		else:
 			fields = None
-		list_items = self.adsm_lists.service.GetListItems(list_uuid, query=query, viewFields=fields, rowLimit=9999)
+		if folder:
+			queryOptions = Element('ns1:queryOptions').append(Element('QueryOptions').append(Element('Folder').setText(folder)))
+		else:
+			queryOptions = None
+		list_items = self.adsm_lists.service.GetListItems(list_uuid, query=query, viewFields=fields, rowLimit=9999, queryOptions=queryOptions)
 		list_items_rows = list_items.listitems.data.row if int(list_items.listitems.data._ItemCount) > 1 \
 		            else [list_items.listitems.data.row] if int(list_items.listitems.data._ItemCount) > 0 \
 		            else []
