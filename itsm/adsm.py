@@ -208,9 +208,9 @@ class ADSMBase(Base):
 	# Sync functions
 
 	def sync_to_list_by_comparison(self, list_uuid, query, viewFields, list_items_compare_key, ext_items, ext_items_compare_key, compare_f, field_map, content_type='Item', folder=None, fuzzy=False, max_dist=4, commit=True):
-		table = self.keyed_listitems(list_uuid, query=query, fields=viewFields, key_field=field)
+		table = self.keyed_listitems(list_uuid, query=query, fields=viewFields, key_field=list_items_compare_key)
 		if fuzzy:
-			fuzzy_table = self.fuzzy_keyed_listitems(list_uuid, query=query, fields=viewFields, key_field=field)
+			fuzzy_table = self.fuzzy_keyed_listitems(list_uuid, query=query, fields=viewFields, key_field=list_items_compare_key)
 		
 		method_idx = 1
 		batch = Element('Batch')\
