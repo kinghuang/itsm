@@ -100,7 +100,7 @@ class ADSMBase(Base):
 			principals = [principals]
 		return ADSMBase.ref_sep.join(filter(lambda x: x, map(self.person_ref, principals)))
 
-	def _list_items(self, list_uuid, query=None, fields=('ID', 'Title'), limit=9999, cache=True):
+	def listitems(self, list_uuid, query=None, fields=('ID', 'Title'), limit=9999, cache=True):
 		if cache:
 			table = self._cachetable('_get_listitems')
 			key = '%s/%s/%s/%s' % (list_uuid, query, fields, limit)
