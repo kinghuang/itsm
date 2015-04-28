@@ -30,11 +30,13 @@ class ADSMBase(Base):
 	# Access web services clients for ADSM endpoints
 
 	@property
-	def adsm_lists(self):  return self._delayed_adsm_client('_adsm_lists',  'Lists.asmx?WSDL')
+	def adsm_lists(self):     return self._delayed_adsm_client('_adsm_lists',     'Lists.asmx?WSDL')
 	@property
-	def adsm_people(self): return self._delayed_adsm_client('_adsm_people', 'People.asmx?WSDL')
+	def adsm_people(self):    return self._delayed_adsm_client('_adsm_people',    'People.asmx?WSDL')
 	@property
-	def adsm_webs(self):   return self._delayed_adsm_client('_adsm_webs',   'Webs.asmx?WSDL')
+	def adsm_webs(self):      return self._delayed_adsm_client('_adsm_webs',      'Webs.asmx?WSDL')
+	@property
+	def adsm_usergroup(self): return self._delayed_adsm_client('_adsm_usergroup', 'UserGroup.asmx?WSDL')
 
 	@property
 	def ci_list_uuid(self): return os.environ[self.args.env + '_CI_LIST']
