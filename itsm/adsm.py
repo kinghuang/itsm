@@ -63,42 +63,7 @@ class ADSMBase(Base):
 	def reset_caches(self):
 		setattr(self, '_cachetables', {})
 
-	# Reference functions
-
-	def person_ref(self, principal):
-		if not principal:
-			return None
-		if principal in self.person_ref._cache:
-			return self.person_ref._cache.get(principal)
-
-		def resolve(p):
-			principals = Element('ns1:principalKeys').append(Element('ns1:string').setText(p))
-			result = self.adsm_people.service.ResolvePrincipals(principals, 'User', True)
-			return result.PrincipalInfo[0]
-
-		candidate = resolve(principal)
-		if not candidate.IsResolved:
-			self.person_ref._cache[principal] = None
-			return None
-		elif candidate.AccountName.startswith('UC_ADMIN') or candidate.AccountName.startswith('UC_CAMPUS'):
-			# if the resolved candidate is a UC_ADMIN or UC_CAMPUS account,
-			# attempt to find an equivalent UC account
-			uc_principal = candidate.AccountName.replace('UC_ADMIN', 'UC').replace('UC_CAMPUS', 'UC')
-			uc_candidate = resolve(uc_principal)
-			if uc_candidate.IsResolved:
-				candidate = uc_candidate
-
-		ref = '%s%s%s' % (candidate.UserInfoID, ADSMBase.ref_sep, candidate.DisplayName)
-		self.person_ref._cache[principal] = ref
-		return ref
-	person_ref._cache = {}
-
-	def people_refs(self, principals):
-		if not principals:
-			return None
-		if isinstance(principals, basestring):
-			principals = [principals]
-		return ADSMBase.ref_sep.join(filter(lambda x: x, map(self.person_ref, principals)))
+	# List functions
 
 	def listitems(self, list_uuid, query=None, fields=('ID', 'Title'), limit=9999, cache=True):
 		if cache:
@@ -135,6 +100,43 @@ class ADSMBase(Base):
 		candidates.sort(lambda x, y: x[0] - y[0])
 
 		return candidates[0][1] if len(candidates) > 0 else None
+
+	# Reference functions
+
+	def person_ref(self, principal):
+		if not principal:
+			return None
+		if principal in self.person_ref._cache:
+			return self.person_ref._cache.get(principal)
+
+		def resolve(p):
+			principals = Element('ns1:principalKeys').append(Element('ns1:string').setText(p))
+			result = self.adsm_people.service.ResolvePrincipals(principals, 'User', True)
+			return result.PrincipalInfo[0]
+
+		candidate = resolve(principal)
+		if not candidate.IsResolved:
+			self.person_ref._cache[principal] = None
+			return None
+		elif candidate.AccountName.startswith('UC_ADMIN') or candidate.AccountName.startswith('UC_CAMPUS'):
+			# if the resolved candidate is a UC_ADMIN or UC_CAMPUS account,
+			# attempt to find an equivalent UC account
+			uc_principal = candidate.AccountName.replace('UC_ADMIN', 'UC').replace('UC_CAMPUS', 'UC')
+			uc_candidate = resolve(uc_principal)
+			if uc_candidate.IsResolved:
+				candidate = uc_candidate
+
+		ref = '%s%s%s' % (candidate.UserInfoID, ADSMBase.ref_sep, candidate.DisplayName)
+		self.person_ref._cache[principal] = ref
+		return ref
+	person_ref._cache = {}
+
+	def people_refs(self, principals):
+		if not principals:
+			return None
+		if isinstance(principals, basestring):
+			principals = [principals]
+		return ADSMBase.ref_sep.join(filter(lambda x: x, map(self.person_ref, principals)))
 
 	def listitem_ref(self, list_uuid, query, viewFields, field, field_value, display_field='_ows_Title', fuzzy=False, max_dist=4):
 		cache_key = '%s/%s/%s' % (list_uuid, query, ','.join(viewFields))
