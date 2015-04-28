@@ -2,9 +2,11 @@
 # coding=utf-8
 
 import collections
+import os
 
 from nltk import metrics, stem, tokenize
 from suds.sax.element import Attribute, Element
+from suds.sax.parser import Parser
 
 from itsm.base import Base
 
