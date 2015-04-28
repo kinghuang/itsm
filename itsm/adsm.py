@@ -52,13 +52,16 @@ class ADSMBase(Base):
 		if not hasattr(self, '_cachetables')
 			setattr(self, '_cachetables', {})
 		tables = getattr(self, '_cachetables')
-		
+
 		table = tables.get(name)
 		if not table:
 			table = {}
 			tables[name, table]
 
 		return table
+
+	def reset_caches(self):
+		setattr(self, '_cachetables', {})
 
 	# Reference functions
 
@@ -188,9 +191,7 @@ class ADSMBase(Base):
 
 		return self.listitem_ref(list_uuid, query, viewFields, field, field_value, display_field=display_field, fuzzy=fuzzy, max_dist=max_dist)
 
-	def reset_caches(self):
-		self.listitem_ref._cache = {}
-		self.person_ref._cache = {}
+
 
 	# Sync functions
 
