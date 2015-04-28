@@ -162,12 +162,12 @@ class ADSMBase(Base):
 		return ref
 	person_ref._cache = {}
 
-	def people_refs(self, principals):
+	def people_refs(self, principals, fuzzy=False, max_dist=4):
 		if not principals:
 			return None
 		if isinstance(principals, basestring):
 			principals = [principals]
-		return ADSMBase.ref_sep.join(filter(lambda x: x, map(self.person_ref, principals)))
+		return ADSMBase.ref_sep.join(filter(lambda x: x, map(lambda y: self.person_ref(y, fuzzy=fuzzy, max_dist=max_dist), principals)))
 
 	def listitem_ref(self, list_uuid, query, viewFields, field, field_value, display_field='_ows_Title', fuzzy=False, max_dist=4):
 		# Attempt to get exact match
