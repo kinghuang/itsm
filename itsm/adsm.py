@@ -189,35 +189,26 @@ class ADSMBase(Base):
 
 		return self.listitem_ref(list_uuid, query, viewFields, field, field_value, display_field=display_field, fuzzy=fuzzy, max_dist=max_dist)
 
-
-
 	# Sync functions
 
 	def sync_to_list_by_comparison(self, list_uuid, query, viewFields, list_items_compare_key, ext_items, ext_items_compare_key, compare_f, field_map, content_type='Item', folder=None, fuzzy=False, max_dist=4, commit=True):
-		if not query:
-			query = Element('ns1:query').append(Element('Query').append(Element('Where').append(Element('IsNotNull').append(Element('FieldRef').append(Attribute('Name', 'ID'))))))
-		if viewFields:
-			fields = Element('ViewFields')
-			for f in viewFields:
-				fields.append(Element('FieldRef').append(Attribute('Name', f[5:] if f.startswith('_ows_') else f)))
-			fields = Element('ns1:viewFields').append(fields)
-		else:
-			fields = None
-		if folder:
-			queryOptions = Element('ns1:queryOptions').append(Element('QueryOptions').append(Element('Folder').setText(folder)))
-		else:
-			queryOptions = None
-		list_items = self.adsm_lists.service.GetListItems(list_uuid, query=query, viewFields=fields, rowLimit=9999, queryOptions=queryOptions)
-		list_items_rows = list_items.listitems.data.row if int(list_items.listitems.data._ItemCount) > 1 \
-		            else [list_items.listitems.data.row] if int(list_items.listitems.data._ItemCount) > 0 \
-		            else []
-		list_items_map = dict(filter(lambda p: p[0], map(lambda x: (x.__dict__.get(list_items_compare_key), x), list_items_rows)))
+		cache = self._cachetable('listitems')
+		cache_key = '%s/%s/%s/%s' % (list_uuid, query, viewFields, field)
+
+		table = cache.get(cache_key)
+		if not table:
+			listitems = self.listitems(list_uuid, query=query, fields=viewFields)
+			table = self.keyed_listitems(listitems, key_field=field)
+			cache[cache_key] = table
+
 		if fuzzy:
-			stemmer = stem.PorterStemmer()
-			def normalize(s):
-				words = tokenize.wordpunct_tokenize(s.lower().strip())
-				return ' '.join([stemmer.stem(w) for w in words])
-			list_items_normalized_map = dict((normalize(k), v) for k, v in list_items_map.items())
+			fuzzy_cache_key = '%s/fuzzy' % cache_key
+
+			fuzzy_table = cache.get(fuzzy_cache_key)
+			if not fuzzy_table:
+				listitems = self.listitems(list_uuid, query=query, fields=viewFields)
+				fuzzy_table = self.fuzzy_keyed_listitems(listitems, key_field=field)
+				cache[fuzzy_cache_key] = fuzzy_table
 		
 		method_idx = 1
 		batch = Element('Batch')\
@@ -232,12 +223,10 @@ class ADSMBase(Base):
 				print self.adsm_lists.service.UpdateListItems(listName=list_uuid, updates=updates)
 
 		for ext_item in ext_items:
-			list_item = list_items_map.get(ext_item[ext_items_compare_key])
+			list_item = table.get(ext_item[ext_items_compare_key])
 			if not list_item and fuzzy:
-				normalized_compare_v = normalize(ext_item[ext_items_compare_key])
-				candidates = sorted(list_items_normalized_map.items(), lambda x, y: metrics.edit_distance(x, normalized_compare_v) - metrics.edit_distance(y, normalized_compare_v), lambda t: t[0])
-				if metrics.edit_distance(candidates[0][0], normalized_compare_v) <= max_dist:
-					list_item = candidates[0][1]
+				list_item = self.fuzzy_match(fuzzy_table, ext_item[ext_items_compare_key], max_dist=4)
+			
 			method_cmd = compare_f(ext_item, list_item)
 			if not method_cmd:
 				continue
