@@ -56,7 +56,7 @@ class ADSMBase(Base):
 		table = tables.get(name)
 		if not table:
 			table = {}
-			tables[name, table]
+			tables[name] = table
 
 		return table
 
