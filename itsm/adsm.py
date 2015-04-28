@@ -121,7 +121,7 @@ class ADSMBase(Base):
 
 	# Reference functions
 
-	def person_ref(self, principal):
+	def person_ref(self, principal, fuzzy=False, max_dist=4):
 		if not principal:
 			return None
 		if principal in self.person_ref._cache:
@@ -133,6 +133,19 @@ class ADSMBase(Base):
 			return result.PrincipalInfo[0]
 
 		candidate = resolve(principal)
+		if not candidate.IsResolved and fuzzy:
+			# Attempt to find a username principal
+			cache = self._cachetable('person_ref')
+			table = cache.get('FuzzyUserCollection')
+			if not table:
+				rows = self.adsm_usergroup.service.GetUserCollectionFromSite().GetUserCollectionFromSite.Users.User
+				table = dict((self.normalize(r['_Name']), r) for r in rows)
+				cache['FuzzyUserCollection'] = table
+
+			user = self.fuzzy_match(table, principal, max_dist=max_dist)
+			if user:
+				principal = user['_LoginName']
+				candidate = resolve(principal)
 		if not candidate.IsResolved:
 			self.person_ref._cache[principal] = None
 			return None
