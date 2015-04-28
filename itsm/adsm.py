@@ -137,6 +137,23 @@ class ADSMBase(Base):
 			field_values = [field_values]
 		return ADSMBase.ref_sep.join(filter(lambda x: x, map(lambda field_value: self.listitem_ref(list_uuid, query, viewFields, field, field_value, display_field=display_field, fuzzy=fuzzy, max_dist=max_dist), field_values)))
 
+	def ci_ref(self, content_type, field, field_value, display_field='_ows_Title', fuzzy=False, max_dist=4):
+		return self._known_listitem_ref('ci', content_type, field, field_value, display_field=display_field, fuzzy=fuzzy, max_dist=max_dist)
+
+	def uc_ref(self, content_type, field, field_value, display_field='_ows_Title', fuzzy=False, max_dist=4):
+		return self._known_listitem_ref('uc', content_type, field, field_value, display_field=display_field, fuzzy=fuzzy, max_dist=max_dist)
+
+	def choice_ref(self, content_type, field, field_value, display_field='_ows_Title', fuzzy=False, max_dist=4):
+		return self._known_listitem_ref('choices', content_type, field, field_value, display_field=display_field, fuzzy=fuzzy, max_dist=max_dist)
+
+	def _known_listitem_ref(self, listname, content_type, field, field_value, display_field='_ows_Title', fuzzy=False, max_dist=4):
+		list_uuid = getattr(self, '%s_list_uuid' % listname)
+		query = Parser().parse(string=str('<ns1:query><Query><Where><Eq><FieldRef Name="ContentType"/><Value Type="Text">%s</Value></Eq></Where></Query></ns1:query>' % content_type)).getChild('query') \
+		        if content_type else None
+		viewFields = ('ID', 'Title', field[5:] if field.startswith('_ows_') else field)
+
+		return self.listitem_ref(list_uuid, query, viewFields, field, field_value, display_field=display_field, fuzzy=fuzzy, max_dist=max_dist)
+
 	def reset_caches(self):
 		self.listitem_ref._cache = {}
 		self.person_ref._cache = {}
