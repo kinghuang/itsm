@@ -122,6 +122,20 @@ class ADSMBase(Base):
 	def keyed_listitems(self, list_items, key_field='_ows_Title'):
 		return dict(filter(lambda x: x[0], map(lambda x: (x.__dict__.get(key_field), x), list_items)))
 
+	def fuzzy_keyed_listitems(self, list_items, key_field='_ows_Title'):
+		return dict(filter(lambda x: x[0], map(lambda x: (self.normalize(x.__dict__.get(key_field)), x), list_items)))
+
+	def normalize(self, s, stemmer=stem.PorterStemmer()):
+		words = tokenize.wordpunct_tokenize(s.lower().strip())
+		return ' '.join([stemmer.stem(w) for w in words])
+
+	def fuzzy_match(self, fuzzy_keyed_list_items, s, max_dist=4):
+		normalized_key = self.normalize(s)
+		candidates = filter(lambda y: y[0] <= max_dist, ((metrics.edit_distance(x[0], normalized_key), x[1]) for x in fuzzy_keyed_list_items.items()))
+		candidates.sort(lambda x, y: x[0] - y[0])
+
+		return candidates[0][1] if len(candidates) > 0 else None
+
 	def listitem_ref(self, list_uuid, query, viewFields, field, field_value, display_field='_ows_Title', fuzzy=False, max_dist=4):
 		cache_key = '%s/%s/%s' % (list_uuid, query, ','.join(viewFields))
 		table = self.listitem_ref._cache.get(cache_key)
