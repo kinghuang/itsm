@@ -166,7 +166,7 @@ class ADSMBase(Base):
 		if viewFields:
 			fields = Element('ViewFields')
 			for f in viewFields:
-				fields.append(Element('FieldRef').append(Attribute('Name', f)))
+				fields.append(Element('FieldRef').append(Attribute('Name', f[5:] if f.startswith('_ows_') else f)))
 			fields = Element('ns1:viewFields').append(fields)
 		else:
 			fields = None
