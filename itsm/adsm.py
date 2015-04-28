@@ -139,52 +139,31 @@ class ADSMBase(Base):
 		return ADSMBase.ref_sep.join(filter(lambda x: x, map(self.person_ref, principals)))
 
 	def listitem_ref(self, list_uuid, query, viewFields, field, field_value, display_field='_ows_Title', fuzzy=False, max_dist=4):
-		cache_key = '%s/%s/%s' % (list_uuid, query, ','.join(viewFields))
-		table = self.listitem_ref._cache.get(cache_key)
+		cache = self._cachetable('listitem_ref')
+		cache_key = '%s/%s/%s/%s' % (list_uuid, query, viewFields, field)
+
+		table = cache.get(cache_key)
 		if not table:
-			if not query:
-				query = Element('ns1:query').append(Element('Query').append(Element('Where').append(Element('IsNotNull').append(Element('FieldRef').append(Attribute('Name', 'ID'))))))
-			if viewFields:
-				fields = Element('ViewFields')
-				for f in viewFields:
-					fields.append(Element('FieldRef').append(Attribute('Name', f)))
-				fields = Element('ns1:viewFields').append(fields)
-			else:
-				fields = None
-			list_items = self.adsm_lists.service.GetListItems(list_uuid, query=query, viewFields=fields, rowLimit=9999)
-			list_items_rows = list_items.listitems.data.row if int(list_items.listitems.data._ItemCount) > 1 \
-			          else [list_items.listitems.data.row] if int(list_items.listitems.data._ItemCount) > 0 \
-			          else []
-			table = dict(filter(lambda x: x[0], map(lambda x: (x.__dict__.get(field), x), list_items_rows)))
-			self.listitem_ref._cache[cache_key] = table
+			listitems = self.listitems(list_uuid, query=query, fields=viewFields)
+			table = self.keyed_listitems(listitems, key_field=field)
+			cache[cache_key] = table
 
 		# Attempt to get exact match
 		match = table.get(field_value)
-		if match:
-			return '%s%s%s' % (match['_ows_ID'], ADSMBase.ref_sep, match[display_field] if display_field else '')
+		
+		# If no exact match is found and fuzzy is True, attempt to find a reasonable match
+		if not match and fuzzy:
+			fuzzy_cache_key = '%s/fuzzy' % cache_key
 
-		# If fuzzy is True, attempt to find a reasonable match
-		if fuzzy:
-			stemmer = stem.PorterStemmer()
-			def normalize(s):
-				words = tokenize.wordpunct_tokenize(s.lower().strip())
-				return ' '.join([stemmer.stem(w) for w in words])
+			fuzzy_table = cache.get(fuzzy_cache_key)
+			if not fuzzy_table:
+				listitems = self.listitems(list_uuid, query=query, fields=viewFields)
+				fuzzy_table = self.fuzzy_keyed_listitems(listitems, key_field=field)
+				cache[fuzzy_cache_key] = fuzzy_table
 
-			normalized_cache_key = '%s/normalized' % cache_key
-			normalized_table = self.listitem_ref._cache.get(normalized_cache_key)
-			if not normalized_table:
-				normalized_table = dict((normalize(k), v) for k, v in table.items())
-				self.listitem_ref._cache[normalized_cache_key] = normalized_table
+			match = self.fuzzy_match(fuzzy_table, field_value, max_dist=max_dist)
 
-			normalized_field_value = normalize(field_value)
-			candidates = sorted(normalized_table.items(), lambda x, y: metrics.edit_distance(x, normalized_field_value) - metrics.edit_distance(y, normalized_field_value), lambda t: t[0])
-			if metrics.edit_distance(candidates[0][0], normalized_field_value) <= max_dist:
-				match = candidates[0][1]
-				return '%s%s%s' % (match['_ows_ID'], ADSMBase.ref_sep, match[display_field] if display_field else '')
-
-		# No match found
-		return None
-	listitem_ref._cache = {}
+		return '%s%s%s' % (match['_ows_ID'], ADSMBase.ref_sep, match[display_field] if display_field else '') if match else None
 
 	def listitem_refs(self, list_uuid, query, viewFields, field, field_values, display_field='_ows_Title', fuzzy=False, max_dist=4):
 		if not field_values:
