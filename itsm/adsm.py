@@ -91,6 +91,25 @@ class ADSMBase(Base):
 			principals = [principals]
 		return ADSMBase.ref_sep.join(filter(lambda x: x, map(self.person_ref, principals)))
 
+	def _list_items(self, list_uuid, query=None, fields=('ID', 'Title'), limit=9999, cache=False):
+		if cache:
+			table = self._cachetable('_get_listitems')
+			key = '%s/%s/%s/%s' % (list_uuid, query, fields, limit)
+			if key in table:
+				return table[key]
+
+		query = Element('ns1:query').append(Element('Query').append(Element('Where').append(Element('IsNotNull').append(Element('FieldRef').append(Attribute('Name', 'ID')))))) if not query else query
+		fields = Element('ns1:viewFields').append(Element('ViewFields').append([Element('FieldRef').append(Attribute('Name', f)) for f in fields])) if fields else None
+
+		list_items = self.adsm_lists.service.GetListItems(list_uuid, query=query, viewFields=fields, rowLimit=limit)
+		list_items_rows = list_items.listitems.data.row if int(list_items.listitems.data._ItemCount) > 1 \
+			          else [list_items.listitems.data.row] if int(list_items.listitems.data._ItemCount) > 0 \
+			          else []
+		if cache:
+			table[key] = list_items_rows
+
+		return list_items_rows
+
 	def listitem_ref(self, list_uuid, query, viewFields, field, field_value, display_field='_ows_Title', fuzzy=False, max_dist=4):
 		cache_key = '%s/%s/%s' % (list_uuid, query, ','.join(viewFields))
 		table = self.listitem_ref._cache.get(cache_key)
