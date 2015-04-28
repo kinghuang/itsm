@@ -14,9 +14,7 @@ class Base(object):
 		"""The main runloop. Scripts should call this method
 		after instantiating an object."""
 
-		parser = self.argument_parser()
-		self.args = parser.parse_args(self._args)
-		self.unpack_arguments(self.args)
+		self._prep_args()
 
 		# Give subclasses an opportunity to perform additional setup functions
 		# before main is invoked.
@@ -64,6 +62,11 @@ class Base(object):
 
 	def unpack_arguments(self, args):
 		pass
+
+	def _prep_args(self):
+		parser = self.argument_parser()
+		self.args = parser.parse_args(self._args)
+		self.unpack_arguments(self.args)
 
 	def prepare_for_main(self):
 		"""A stub method for library classes to optionally implement. Typically,
