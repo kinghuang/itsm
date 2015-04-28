@@ -18,6 +18,7 @@ class ADSMBase(Base):
 		parser = super(ADSMBase, self).argument_parser()
 
 		parser.add_argument('env', default='SP_ADSM', nargs='?')
+		parser.add_argument('-d', help='dry run', action='store_true')
 
 		return parser
 
