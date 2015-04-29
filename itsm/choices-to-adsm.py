@@ -16,7 +16,6 @@ class Choices(ADSMBase):
 
 		parser.add_argument('spreadsheet', help='Excel spreadsheet', default='../../Spreadsheets/Choices.xlsx', nargs='?')
 		parser.add_argument('sheet', help='sheet name')
-		parser.add_argument('-d', help='dry run', action='store_true')
 
 		return parser
 

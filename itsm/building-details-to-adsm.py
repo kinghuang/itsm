@@ -23,7 +23,6 @@ class BuildingDetailsToADSM(ADSMBase):
 		parser = super(BuildingDetailsToADSM, self).argument_parser()
 
 		parser.add_argument('buildings_url', default='http://www.ucalgary.ca/facilities/buildings/', nargs='?')
-		parser.add_argument('-d', help='dry run', action='store_true')
 
 		return parser
 
