@@ -29,7 +29,7 @@ class Choices(ADSMBase):
 		field_map = (
 			('Title', 'Title'),
 			('CIShortTitle', 'Short Title'),
-			('CIResourceURL', lambda r: '%s, %s' % (r['Resource URL'], r['Resource Title']) if r['Resource URL'] else None),
+			('CIInformation', lambda r: '%s, %s' % (r['Info URL'], r['Info Title']) if r['Info URL'] else None),
 			('CIDescription', 'Description'),
 			('CIChoiceType', lambda r: self.args.sheet)
 		)

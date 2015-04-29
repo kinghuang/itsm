@@ -52,7 +52,7 @@ class BuildingDetailsToADSM(ADSMBase):
 			('CIDevelopmentDate', lambda r: conv_date(r['Start Date'])),
 			('CIReleaseDate', lambda r: conv_date(r['Completion Date'])),
 			('CIProductionFundingAmount', 'Cost'),
-			('CIResourceURL', lambda r: '%s, %s' % (r['URL'], r['Building'])),
+			('CIInformation', lambda r: '%s, %s' % (r['URL'], r['Building'])),
 		)
 
 		def rows():
