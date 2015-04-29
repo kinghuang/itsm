@@ -46,7 +46,7 @@ class Choices(ADSMBase):
 				row = sheet.row(row_idx)
 				yield dict(zip(columns, (x.value for x in row)))
 
-		self.sync_to_list_by_comparison(Choices.choices_list, None, ('ID', 'Title'), '_ows_Title', rows(), 'Title', compare_f, field_map, content_type='Configuration Item Choice', commit=not self.args.d)
+		self.sync_to_list_by_comparison(Choices.choices_list, None, ('ID', 'Title', 'CIChoiceType'), '_ows_Title', rows(), 'Title', compare_f, field_map, content_type='Configuration Item Choice', commit=not self.args.d)
 
 
 def main(args=None):
