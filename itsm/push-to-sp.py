@@ -21,7 +21,6 @@ class PushToSP(ADSMBase):
 		parser.add_argument('spec', help='argument to the type (identifier or group)')
 		parser.add_argument('spreadsheet', help='path to Excel spreadsheet containing specifications', default='../../Spreadsheets/ITSM Field Definitions.xlsx', nargs='?')
 		parser.add_argument('sheet', help='sheet name and optional sub-type in spreadsheet')
-		parser.add_argument('-d', help='dry run', action='store_true')
 
 		return parser
 

@@ -65,7 +65,7 @@ class ADSMBase(Base):
 
 	# List functions
 
-	def listitems(self, list_uuid, query=None, fields=('ID', 'Title'), limit=9999, cache=True):
+	def listitems(self, list_uuid, query=None, fields=('ID', 'Title'), folder=None, limit=9999, cache=True):
 		if cache:
 			table = self._cachetable('_get_listitems')
 			key = '%s/%s/%s/%s' % (list_uuid, query, fields, limit)
@@ -73,9 +73,10 @@ class ADSMBase(Base):
 				return table[key]
 
 		query = Element('ns1:query').append(Element('Query').append(Element('Where').append(Element('IsNotNull').append(Element('FieldRef').append(Attribute('Name', 'ID')))))) if not query else query
+		queryOptions = Element('ns1:queryOptions').append(Element('QueryOptions').append(Element('Folder').setText(folder))) if folder else None
 		fields = Element('ns1:viewFields').append(Element('ViewFields').append([Element('FieldRef').append(Attribute('Name', f)) for f in fields])) if fields else None
 
-		list_items = self.adsm_lists.service.GetListItems(list_uuid, query=query, viewFields=fields, rowLimit=limit)
+		list_items = self.adsm_lists.service.GetListItems(list_uuid, query=query, viewFields=fields, rowLimit=limit, queryOptions=queryOptions)
 		list_items_rows = list_items.listitems.data.row if int(list_items.listitems.data._ItemCount) > 1 \
 			          else [list_items.listitems.data.row] if int(list_items.listitems.data._ItemCount) > 0 \
 			          else []
@@ -84,25 +85,25 @@ class ADSMBase(Base):
 
 		return list_items_rows
 
-	def keyed_listitems(self, list_uuid, query=None, fields=('ID', 'Title'), limit=9999, key_field='_ows_Title'):
+	def keyed_listitems(self, list_uuid, query=None, fields=('ID', 'Title'), folder=None, limit=9999, key_field='_ows_Title'):
 		table = self._cachetable('keyed_listitems')
 		key = '%s/%s/%s/%s/%s' % (list_uuid, query, fields, limit, key_field)
 		if key in table:
 			return table[key]
 		
-		listitems = self.listitems(list_uuid, query=query, fields=fields, limit=limit)
+		listitems = self.listitems(list_uuid, query=query, fields=fields, folder=folder, limit=limit)
 		keyed_listitems = dict(filter(lambda x: x[0], map(lambda x: (x.__dict__.get(key_field), x), listitems)))
 		table[key] = keyed_listitems
 
 		return keyed_listitems
 
-	def fuzzy_keyed_listitems(self, list_uuid, query=None, fields=('ID', 'Title'), limit=9999, key_field='_ows_Title'):
+	def fuzzy_keyed_listitems(self, list_uuid, query=None, fields=('ID', 'Title'), folder=None, limit=9999, key_field='_ows_Title'):
 		table = self._cachetable('keyed_listitems')
 		key = '%s/%s/%s/%s/%s/fuzzy' % (list_uuid, query, fields, limit, key_field)
 		if key in table:
 			return table[key]
 		
-		listitems = self.listitems(list_uuid, query=query, fields=fields, limit=limit)
+		listitems = self.listitems(list_uuid, query=query, fields=fields, folder=folder, limit=limit)
 		keyed_listitems = dict(filter(lambda x: x[0], map(lambda x: (self.normalize(x.__dict__.get(key_field)), x), listitems)))
 		table[key] = keyed_listitems
 
@@ -208,10 +209,10 @@ class ADSMBase(Base):
 	# Sync functions
 
 	def sync_to_list_by_comparison(self, list_uuid, query, viewFields, list_items_compare_key, ext_items, ext_items_compare_key, compare_f, field_map, content_type='Item', folder=None, fuzzy=False, max_dist=4, commit=True):
-		table = self.keyed_listitems(list_uuid, query=query, fields=viewFields, key_field=list_items_compare_key)
+		table = self.keyed_listitems(list_uuid, query=query, fields=viewFields, folder=folder, key_field=list_items_compare_key)
 		if fuzzy:
-			fuzzy_table = self.fuzzy_keyed_listitems(list_uuid, query=query, fields=viewFields, key_field=list_items_compare_key)
-		
+			fuzzy_table = self.fuzzy_keyed_listitems(list_uuid, query=query, fields=viewFields, folder=folder, key_field=list_items_compare_key)
+
 		method_idx = 1
 		batch = Element('Batch')\
 		       .append(Attribute('OnError', 'Continue'))\

@@ -7,12 +7,17 @@ from itsm.adsm import ADSMBase
 class UnitsToADSM(ADSMBase):
 
 	# Production
-	units_list = '{3BEA7DBB-27C7-45DF-A187-A589CA062600}'
-	key_fields = ('ID', 'Title', 'CIExternalReference1', 'CIExternalReference2')
-
-	# Development
-	# units_list = '{C82DE52C-9AA2-43B7-B739-5047A002A15A}'
+	uc_list = '{8E3E8107-9FEF-406F-880E-8C980E7400EE}'
+	unit_fields = ('ID', 'Title', 'CIExternalReference1', 'CIExternalReference2')
+	building_fields = ('ID', 'Title', 'CIShortTitle')
 	
+	def argument_parser(self):
+		parser = super(UnitsToADSM, self).argument_parser()
+
+		parser.add_argument('-d', help='dry run', action='store_true')
+
+		return parser
+
 	@property
 	def unitis_units(self):
 		if not hasattr(self, '_unitis_units'):
@@ -29,8 +34,7 @@ class UnitsToADSM(ADSMBase):
 			('UNITISUnitType', 'Type'),
 			('UNITISUnitWebsite', 'Website'),
 			('UNITISUnitKeywords', 'Keywords'),
-			('UNITISUnitBuilding', lambda r: r['Rooms']['ContactRoom'][0]['Room']['BuildingName']),
-			('UNITISUnitBuildingCode', lambda r: r['Rooms']['ContactRoom'][0]['Room']['BuildingCode'].upper()),
+			('UNITISUnitBuilding', lambda r: self.listitem_ref(UnitsToADSM.uc_list, None, UnitsToADSM.building_fields, '_ows_CIShortTitle', r['Rooms']['ContactRoom'][0]['Room']['BuildingCode'].upper())),
 			('UNITISUnitRoomNumber', lambda r: r['Rooms']['ContactRoom'][0]['Room']['Number']),
 			('UNITISUnitPhone', lambda r: '+%s (%s) %s' % (r['Phones']['ContactPhone'][0]['Phone']['CountryCode'], r['Phones']['ContactPhone'][0]['Phone']['AreaCode'], r['Phones']['ContactPhone'][0]['Phone']['Number'])),
 			('UNITISUnitEmail', lambda r: r['Emails']['ContactEmail'][0]['Address']),
@@ -38,8 +42,8 @@ class UnitsToADSM(ADSMBase):
 		)
 
 		parents_children_field_map = (
-			('UNITISUnitParentUnits', lambda r: self.listitem_refs(UnitsToADSM.units_list, None, UnitsToADSM.key_fields, '_ows_CIExternalReference1', [x['Id'] for x in r['Parents']['Unit']])),
-			('UNITISUnitChildUnits', lambda r: self.listitem_refs(UnitsToADSM.units_list, None, UnitsToADSM.key_fields, '_ows_CIExternalReference1', [x['Id'] for x in r['Children']['Unit']]))
+			('UNITISUnitParentUnits', lambda r: self.listitem_refs(UnitsToADSM.uc_list, None, UnitsToADSM.unit_fields, '_ows_CIExternalReference1', [x['Id'] for x in r['Parents']['Unit']])),
+			('UNITISUnitChildUnits', lambda r: self.listitem_refs(UnitsToADSM.uc_list, None, UnitsToADSM.unit_fields, '_ows_CIExternalReference1', [x['Id'] for x in r['Children']['Unit']]))
 		)
 
 		# Fetch all public units from UNITIS
@@ -61,9 +65,9 @@ class UnitsToADSM(ADSMBase):
 			return 'Update' if ext_item['Id'] in updated_unit_ids else None
 
 		# Sync
-		self.sync_to_list_by_comparison(UnitsToADSM.units_list, None, UnitsToADSM.key_fields, '_ows_CIExternalReference1', public_units, 'Id', create_update_compare_f, create_update_field_map)
-		self.reset_caches()
-		self.sync_to_list_by_comparison(UnitsToADSM.units_list, None, UnitsToADSM.key_fields, '_ows_CIExternalReference1', public_units, 'Id', parents_children_compare_f, parents_children_field_map)
+		self.sync_to_list_by_comparison(UnitsToADSM.uc_list, None, UnitsToADSM.unit_fields, '_ows_CIExternalReference1', public_units, 'Id', create_update_compare_f, create_update_field_map, commit=not self.args.d, content_type='Unit')
+		# self.reset_caches()
+		# self.sync_to_list_by_comparison(UnitsToADSM.uc_list, None, UnitsToADSM.unit_fields, '_ows_CIExternalReference1', public_units, 'Id', parents_children_compare_f, parents_children_field_map, commit=not self.args.d)
 
 
 def main(args=None):
